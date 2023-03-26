@@ -1,26 +1,61 @@
 import * as THREE from 'three'
 import {OrbitControls} from './jsm/controls/OrbitControls.js'
 import Stats from './jsm/libs/stats.module.js'
-import {GUI} from './jsm/libs/lil-gui.module.min.js'
+import {ColladaLoader} from './jsm/loaders/ColladaLoader.js';
 
+
+
+
+// Scene
 const scene = new THREE.Scene()
-
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100)
+const camera = new THREE.PerspectiveCamera(106, window.innerWidth / window.innerHeight, 0.1, 100)
 camera.position.z = 2
 
+// Renderer
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
+// Controls
 const controls = new OrbitControls(camera, renderer.domElement)
 
-const geometry = new THREE.BoxGeometry()
-const material = new THREE.MeshBasicMaterial({
-    color: 0x00ff00,
-    wireframe: true,
+/*
+// Box Model
+const geometry = new THREE.BoxGeometry();
+const material = new THREE.MeshBasicMaterial({color: 0x00FF00});
+const cube = new THREE.Mesh(geometry, material);
+scene.add(cube);*/
+
+
+// FPS Counter
+const stats = Stats()
+document.body.appendChild(stats.dom)
+
+
+// Skybox
+const cubeTextureLoader = new THREE.CubeTextureLoader();
+const texture = cubeTextureLoader.load([
+    'assets/skybox/humble_ft.jpg',
+    'assets/skybox/humble_bk.jpg',
+    'assets/skybox/humble_up.jpg',
+    'assets/skybox/humble_dn.jpg',
+    'assets/skybox/humble_rt.jpg',
+    'assets/skybox/humble_lf.jpg'
+])
+scene.background = texture;
+
+// Smogmog
+const colladaLoader = new ColladaLoader();
+let weezingModel;
+colladaLoader.load('assets/models/Weezing/Weezing.dae', (model) => {
+    weezingModel = model.scene;
+    weezingModel.scale.set(0.5,0.5,0.5);
+    scene.add(weezingModel);
 })
-const cube = new THREE.Mesh(geometry, material)
-scene.add(cube)
+
+// Light
+const light = new THREE.AmbientLight(0xd3eff0);
+scene.add(light);
 
 window.addEventListener(
     'resize',
@@ -33,23 +68,10 @@ window.addEventListener(
     false
 )
 
-const stats = Stats()
-document.body.appendChild(stats.dom)
-
-const gui = new GUI()
-const cubeFolder = gui.addFolder('Cube')
-cubeFolder.add(cube.scale, 'x', -5, 5)
-cubeFolder.add(cube.scale, 'y', -5, 5)
-cubeFolder.add(cube.scale, 'z', -5, 5)
-cubeFolder.open()
-const cameraFolder = gui.addFolder('Camera')
-cameraFolder.add(camera.position, 'z', 0, 10)
-cameraFolder.open()
 
 function animate() {
     requestAnimationFrame(animate)
-    cube.rotation.x += 0.01
-    cube.rotation.y += 0.01
+    weezingModel.rotation.z += 0.01
     controls.update()
     render()
     stats.update()
